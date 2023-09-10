@@ -61,10 +61,10 @@ export default class CustomPublisher extends PublisherBase<any> {
     const yamlStr = YAML.stringify(data);
     let latestYmlFileName = 'latest.yml';
     if (process.platform === 'darwin') {
-      latestYmlFileName = 'latest-mac.yml';
+      latestYmlFileName = `latest-mac-${process.arch}.yml`;
     } else if (process.platform === 'linux') {
       latestYmlFileName = 'latest-linux.yml';
-    }
+    }    
 
     // Initialize GitHub API client
     const github = new GitHub(undefined, true).getGitHub();
@@ -73,7 +73,8 @@ export default class CustomPublisher extends PublisherBase<any> {
     const release = await github.repos.getReleaseByTag({ 
       owner: config.repository.owner,
       repo: config.repository.name,  
-      tag: releaseName
+      tag: releaseName,
+      status: 'any',
     });
 
     // Upload the latest.yml file as a release asset

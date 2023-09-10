@@ -63,7 +63,7 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
             const yamlStr = yaml_1.default.stringify(data);
             let latestYmlFileName = 'latest.yml';
             if (process.platform === 'darwin') {
-                latestYmlFileName = 'latest-mac.yml';
+                latestYmlFileName = `latest-mac-${process.arch}.yml`;
             }
             else if (process.platform === 'linux') {
                 latestYmlFileName = 'latest-linux.yml';
