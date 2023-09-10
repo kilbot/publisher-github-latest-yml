@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const publisher_base_1 = require("@electron-forge/publisher-base");
-const fs_1 = require("fs");
+const promises_1 = require("fs/promises");
 const crypto_1 = __importDefault(require("crypto"));
 const yaml_1 = __importDefault(require("yaml"));
 const path_1 = __importDefault(require("path"));
@@ -40,7 +40,7 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
                     artifactInfoPromises.push((() => __awaiter(this, void 0, void 0, function* () {
                         try {
                             const artifactName = path_1.default.basename(artifact);
-                            const buffer = yield fs_1.promises.readFile(artifact);
+                            const buffer = yield (0, promises_1.readFile)(artifact);
                             const hash = crypto_1.default.createHash('sha512').update(buffer).digest('hex');
                             const size = buffer.length;
                             return {
@@ -64,24 +64,9 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
                 sha512: files[0].sha512,
                 releaseDate: new Date().toISOString(),
             };
-            const yamlStr = yaml_1.default.stringify(data);
-            /**
-             * This sucks. The mac build runs once for x64 and once for arm64, so we need to
-             * upload the latest.yml file twice, once for each architecture.
-             */
-            const args = process.argv.slice(2); // Get the arguments excluding 'node' and the script name
-            let arch;
-            // Find and set the arch and platform from the arguments
-            args.forEach((arg, index) => {
-                if (arg === '--arch') {
-                    arch = args[index + 1];
-                }
-            });
+            let yamlStr = yaml_1.default.stringify(data);
             let latestYmlFileName = 'latest.yml';
             if (process.platform === 'darwin') {
-                if (arch) {
-                    latestYmlFileName = `latest-mac-${arch}.yml`;
-                }
                 latestYmlFileName = `latest-mac.yml`;
             }
             else if (process.platform === 'linux') {
@@ -97,6 +82,32 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
             })).data.find((testRelease) => testRelease.tag_name === releaseName);
             if (!release) {
                 throw new no_release_error_1.default(404);
+            }
+            // Get the list of assets for the current release
+            const assets = release.assets;
+            // Check if the latestYmlFileName asset exists
+            const existingAsset = assets.find((asset) => asset.name === latestYmlFileName);
+            if (existingAsset) {
+                // Get the asset's content
+                const response = yield github.repos.getReleaseAsset({
+                    headers: {
+                        Accept: 'application/octet-stream',
+                    },
+                    owner: config.repository.owner,
+                    repo: config.repository.name,
+                    asset_id: existingAsset.id,
+                });
+                // Parse the existing YAML data
+                const existingData = yaml_1.default.parse(response.data);
+                // Append the new artifactInfo to the existing files array
+                existingData.files.push(...artifactInfo);
+                yamlStr = yaml_1.default.stringify(existingData);
+                // delete the existing asset
+                yield github.repos.deleteReleaseAsset({
+                    owner: config.repository.owner,
+                    repo: config.repository.name,
+                    asset_id: existingAsset.id,
+                });
             }
             // Upload the latest.yml file as a release asset
             yield github.repos.uploadReleaseAsset({

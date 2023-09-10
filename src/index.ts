@@ -1,5 +1,5 @@
 import { PublisherBase, PublisherOptions } from '@electron-forge/publisher-base';
-import { promises as fs } from 'fs';
+import { readFile } from 'fs/promises';
 import crypto from 'crypto';
 import YAML from 'yaml';
 import path from 'path';
@@ -43,7 +43,7 @@ export default class CustomPublisher extends PublisherBase<any> {
         artifactInfoPromises.push((async () => {
           try {
             const artifactName = path.basename(artifact);
-            const buffer = await fs.readFile(artifact);
+            const buffer = await readFile(artifact);
             const hash = crypto.createHash('sha512').update(buffer).digest('hex');
             const size = buffer.length;
 
@@ -70,29 +70,10 @@ export default class CustomPublisher extends PublisherBase<any> {
       releaseDate: new Date().toISOString(),
     };
 
-    const yamlStr = YAML.stringify(data);
-
-
-    /**
-     * This sucks. The mac build runs once for x64 and once for arm64, so we need to
-     * upload the latest.yml file twice, once for each architecture.
-     */
-    const args = process.argv.slice(2); // Get the arguments excluding 'node' and the script name
-
-    let arch; 
-
-    // Find and set the arch and platform from the arguments
-    args.forEach((arg, index) => {
-      if (arg === '--arch') {
-        arch = args[index + 1];
-      }
-    });
+    let yamlStr = YAML.stringify(data);
 
     let latestYmlFileName = 'latest.yml';
     if (process.platform === 'darwin') {
-      if(arch) {
-        latestYmlFileName = `latest-mac-${arch}.yml`;
-      }
       latestYmlFileName = `latest-mac.yml`;
     } else if (process.platform === 'linux') {
       latestYmlFileName = 'latest-linux.yml';
@@ -112,6 +93,39 @@ export default class CustomPublisher extends PublisherBase<any> {
 
     if (!release) {
       throw new NoReleaseError(404);
+    }
+
+    // Get the list of assets for the current release
+    const assets = release.assets;
+
+    // Check if the latestYmlFileName asset exists
+    const existingAsset = assets.find((asset) => asset.name === latestYmlFileName);
+
+    if (existingAsset) {
+      // Get the asset's content
+      const response = await github.repos.getReleaseAsset({
+        headers: {
+          Accept: 'application/octet-stream',
+        },
+        owner: config.repository.owner,
+        repo: config.repository.name,
+        asset_id: existingAsset.id,
+      });
+
+      // Parse the existing YAML data
+      const existingData = YAML.parse(response.data as unknown as string);
+
+      // Append the new artifactInfo to the existing files array
+      existingData.files.push(...artifactInfo);
+
+      yamlStr = YAML.stringify(existingData);
+
+      // delete the existing asset
+      await github.repos.deleteReleaseAsset({
+        owner: config.repository.owner,
+        repo: config.repository.name,
+        asset_id: existingAsset.id,
+      });
     }
 
     // Upload the latest.yml file as a release asset
