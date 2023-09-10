@@ -1,0 +1,37 @@
+{
+  "name": "publisher-github-latest-yml",
+  "version": "0.0.1",
+  "description": "An Electron Forge Publisher which creates and uploads latest.yml files for your electron releases",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kilbot/publisher-github-latest-yml.git"
+  },
+  "author": "kilbot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kilbot/publisher-github-latest-yml/issues"
+  },
+  "homepage": "https://github.com/kilbot/publisher-github-latest-yml#readme",
+  "dependencies": {
+    "@electron-forge/publisher-base": "^6.4.2",
+    "@electron-forge/shared-types": "^6.4.2",
+    "@octokit/core": "^5.0.0",
+    "@octokit/plugin-retry": "^6.0.0",
+    "@octokit/rest": "^20.0.1",
+    "@octokit/types": "^11.1.0",
+    "crypto": "^1.0.1",
+    "debug": "^4.3.4",
+    "fs": "^0.0.1-security",
+    "mime-types": "^2.1.35",
+    "yaml": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.8",
+    "typescript": "^5.2.2"
+  }
+}
