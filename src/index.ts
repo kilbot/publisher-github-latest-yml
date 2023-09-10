@@ -70,12 +70,17 @@ export default class CustomPublisher extends PublisherBase<any> {
     const github = new GitHub(undefined, true).getGitHub();
 
     // Get the release corresponding to the current version
-    const release = await github.repos.getReleaseByTag({ 
-      owner: config.repository.owner,
-      repo: config.repository.name,  
-      tag: releaseName,
-      status: 'any',
-    });
+    const release = (
+      await github.repos.listReleases({
+        owner: config.repository.owner,
+        repo: config.repository.name,
+        per_page: 100,
+      })
+    ).data.find((testRelease: GitHubRelease) => testRelease.tag_name === releaseName);
+
+    if (!release) {
+      throw new NoReleaseError(404);
+    }
 
     // Upload the latest.yml file as a release asset
     await github.repos.uploadReleaseAsset({
