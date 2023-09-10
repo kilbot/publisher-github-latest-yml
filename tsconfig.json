@@ -2,13 +2,12 @@
   "compilerOptions": {
     "declaration": true,
     "target": "ES6",
-    "module": "NodeNext",
+    "module": "commonjs",
     "outDir": "./",
     "rootDir": "./src",
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true ,
-    "moduleResolution": "NodeNext"
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

@@ -1,9 +1,14 @@
-import { retry } from '@octokit/plugin-retry';
-import { Octokit } from '@octokit/rest';
-import debug from 'debug';
-const logInfo = debug('electron-forge:publisher:github:info');
-const logDebug = debug('electron-forge:publisher:github:debug');
-export default class GitHub {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const plugin_retry_1 = require("@octokit/plugin-retry");
+const rest_1 = require("@octokit/rest");
+const debug_1 = __importDefault(require("debug"));
+const logInfo = (0, debug_1.default)('electron-forge:publisher:github:info');
+const logDebug = (0, debug_1.default)('electron-forge:publisher:github:debug');
+class GitHub {
     constructor(authToken = undefined, requireAuth = false, options = {}) {
         const noOp = () => {
             /* Intentionally does nothing */
@@ -29,8 +34,9 @@ export default class GitHub {
         if (this.token) {
             options.auth = this.token;
         }
-        const RetryableOctokit = Octokit.plugin(retry);
+        const RetryableOctokit = rest_1.Octokit.plugin(plugin_retry_1.retry);
         const github = new RetryableOctokit(options);
         return github;
     }
 }
+exports.default = GitHub;

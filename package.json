@@ -2,7 +2,6 @@
   "name": "publisher-github-latest-yml",
   "version": "0.0.2",
   "description": "An Electron Forge Publisher which creates and uploads latest.yml files for your electron releases",
-  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

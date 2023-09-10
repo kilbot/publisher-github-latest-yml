@@ -21,7 +21,7 @@ export default class CustomPublisher extends PublisherBase<any> {
 
     const artifactInfoPromises: Promise<ArtifactInfo>[] = [];
     let version;
-    let releaseName;
+    let releaseName = '';
     
     for (const result of makeResults) {
       version = result.packageJSON.version;
@@ -41,7 +41,7 @@ export default class CustomPublisher extends PublisherBase<any> {
               size,
             };
           } catch (error) {
-            throw new Error(`Failed to create artifact info for ${artifact}: ${error.message}`);
+            throw new Error(`Failed to create artifact info for ${artifact}: ${error}`);
           }
         })());
       }
