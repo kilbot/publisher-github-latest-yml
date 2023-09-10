@@ -13,6 +13,14 @@ interface ArtifactInfo {
   size: number;
 }
 
+interface GitHubRelease {
+  tag_name: string;
+  assets: {
+    name: string;
+  }[];
+  upload_url: string;
+}
+
 export default class CustomPublisher extends PublisherBase<any> {
   name = 'github-latest-yml';
 
@@ -86,7 +94,7 @@ export default class CustomPublisher extends PublisherBase<any> {
     await github.repos.uploadReleaseAsset({
       owner: config.repository.owner,
       repo: config.repository.name,
-      release_id: release.data.id,
+      release_id: release.id,
       name: latestYmlFileName,
       data: yamlStr,
     });

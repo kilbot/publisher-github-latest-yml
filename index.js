@@ -18,6 +18,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const yaml_1 = __importDefault(require("yaml"));
 const path_1 = __importDefault(require("path"));
 const github_1 = __importDefault(require("./util/github"));
+const no_release_error_1 = __importDefault(require("./util/no-release-error"));
 class CustomPublisher extends publisher_base_1.PublisherBase {
     constructor() {
         super(...arguments);
@@ -71,16 +72,19 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
             // Initialize GitHub API client
             const github = new github_1.default(undefined, true).getGitHub();
             // Get the release corresponding to the current version
-            const release = yield github.repos.getReleaseByTag({
+            const release = (yield github.repos.listReleases({
                 owner: config.repository.owner,
                 repo: config.repository.name,
-                tag: releaseName
-            });
+                per_page: 100,
+            })).data.find((testRelease) => testRelease.tag_name === releaseName);
+            if (!release) {
+                throw new no_release_error_1.default(404);
+            }
             // Upload the latest.yml file as a release asset
             yield github.repos.uploadReleaseAsset({
                 owner: config.repository.owner,
                 repo: config.repository.name,
-                release_id: release.data.id,
+                release_id: release.id,
                 name: latestYmlFileName,
                 data: yamlStr,
             });
