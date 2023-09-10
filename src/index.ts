@@ -112,8 +112,11 @@ export default class CustomPublisher extends PublisherBase<any> {
         asset_id: existingAsset.id,
       });
 
+
       // Parse the existing YAML data
-      const existingData = YAML.parse(response.data as unknown as string);
+      const existingData = YAML.parse(
+        Buffer.from(response.data as unknown as string, 'binary').toString('utf8')
+      );
 
       // Append the new artifactInfo to the existing files array
       existingData.files.push(...artifactInfo);
