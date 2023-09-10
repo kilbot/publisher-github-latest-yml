@@ -36,6 +36,10 @@ export default class CustomPublisher extends PublisherBase<any> {
       releaseName = `v${version}`;
 
       for (const artifact of result.artifacts) {
+        if (path.basename(artifact).toUpperCase() === 'RELEASES') {
+          continue; // Skip the 'RELEASES' artifact
+        }
+        
         artifactInfoPromises.push((async () => {
           try {
             const artifactName = path.basename(artifact);
