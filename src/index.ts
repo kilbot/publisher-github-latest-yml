@@ -67,9 +67,29 @@ export default class CustomPublisher extends PublisherBase<any> {
     };
 
     const yamlStr = YAML.stringify(data);
+
+
+    /**
+     * This sucks. The mac build runs once for x64 and once for arm64, so we need to
+     * upload the latest.yml file twice, once for each architecture.
+     */
+    const args = process.argv.slice(2); // Get the arguments excluding 'node' and the script name
+
+    let arch; 
+
+    // Find and set the arch and platform from the arguments
+    args.forEach((arg, index) => {
+      if (arg === '--arch') {
+        arch = args[index + 1];
+      }
+    });
+
     let latestYmlFileName = 'latest.yml';
     if (process.platform === 'darwin') {
-      latestYmlFileName = `latest-mac-${process.arch}.yml`;
+      if(arch) {
+        latestYmlFileName = `latest-mac-${arch}.yml`;
+      }
+      latestYmlFileName = `latest-mac.yml`;
     } else if (process.platform === 'linux') {
       latestYmlFileName = 'latest-linux.yml';
     }    
