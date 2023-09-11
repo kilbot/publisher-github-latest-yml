@@ -62,7 +62,7 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
                 files: artifactInfo,
                 path: files[0].url,
                 sha512: files[0].sha512,
-                releaseDate: new Date().toISOString(),
+                releaseDate: `'${new Date().toISOString()}'`,
             };
             let yamlStr = yaml_1.default.stringify(data);
             let latestYmlFileName = 'latest.yml';

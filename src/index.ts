@@ -68,7 +68,7 @@ export default class CustomPublisher extends PublisherBase<any> {
       files: artifactInfo,
       path: files[0].url, // replace with your app's filename
       sha512: files[0].sha512, // replace with your app's sha512 hash
-      releaseDate: new Date().toISOString(),
+      releaseDate: `'${new Date().toISOString()}'`,
     };
 
     let yamlStr = YAML.stringify(data);
