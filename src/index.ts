@@ -1,5 +1,6 @@
 import { PublisherBase, PublisherOptions } from '@electron-forge/publisher-base';
 import { readFile } from 'fs/promises';
+import { createWriteStream } from 'fs';
 import crypto from 'crypto';
 import YAML from 'yaml';
 import path from 'path';
@@ -102,6 +103,9 @@ export default class CustomPublisher extends PublisherBase<any> {
     const existingAsset = assets.find((asset) => asset.name === latestYmlFileName);
 
     if (existingAsset) {
+      const tempYamlPath = path.resolve(__dirname, 'temp_latest.yml');
+      const file = createWriteStream(tempYamlPath);
+
       // Get the asset's content
       const response = await github.repos.getReleaseAsset({
         headers: {
@@ -112,11 +116,14 @@ export default class CustomPublisher extends PublisherBase<any> {
         asset_id: existingAsset.id,
       });
 
+      file.write(response.data);
+      file.end();
+
+      // Read the file to get the YAML string
+      const str = await readFile(tempYamlPath, 'utf8');
 
       // Parse the existing YAML data
-      const existingData = YAML.parse(
-        Buffer.from(response.data as unknown as string, 'binary').toString('utf8')
-      );
+      const existingData = YAML.parse(str);
 
       // Append the new artifactInfo to the existing files array
       existingData.files.push(...artifactInfo);

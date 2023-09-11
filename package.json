@@ -1,6 +1,6 @@
 {
   "name": "publisher-github-latest-yml",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "An Electron Forge Publisher which creates and uploads latest.yml files for your electron releases",
   "main": "index.js",
   "scripts": {

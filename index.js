@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const publisher_base_1 = require("@electron-forge/publisher-base");
 const promises_1 = require("fs/promises");
+const fs_1 = require("fs");
 const crypto_1 = __importDefault(require("crypto"));
 const yaml_1 = __importDefault(require("yaml"));
 const path_1 = __importDefault(require("path"));
@@ -88,6 +89,8 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
             // Check if the latestYmlFileName asset exists
             const existingAsset = assets.find((asset) => asset.name === latestYmlFileName);
             if (existingAsset) {
+                const tempYamlPath = path_1.default.resolve(__dirname, 'temp_latest.yml');
+                const file = (0, fs_1.createWriteStream)(tempYamlPath);
                 // Get the asset's content
                 const response = yield github.repos.getReleaseAsset({
                     headers: {
@@ -97,8 +100,12 @@ class CustomPublisher extends publisher_base_1.PublisherBase {
                     repo: config.repository.name,
                     asset_id: existingAsset.id,
                 });
+                file.write(response.data);
+                file.end();
+                // Read the file to get the YAML string
+                const str = yield (0, promises_1.readFile)(tempYamlPath, 'utf8');
                 // Parse the existing YAML data
-                const existingData = yaml_1.default.parse(response.data);
+                const existingData = yaml_1.default.parse(str);
                 // Append the new artifactInfo to the existing files array
                 existingData.files.push(...artifactInfo);
                 yamlStr = yaml_1.default.stringify(existingData);
