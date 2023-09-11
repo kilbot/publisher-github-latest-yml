@@ -103,9 +103,6 @@ export default class CustomPublisher extends PublisherBase<any> {
     const existingAsset = assets.find((asset) => asset.name === latestYmlFileName);
 
     if (existingAsset) {
-      const tempYamlPath = path.resolve(__dirname, 'temp_latest.yml');
-      const file = createWriteStream(tempYamlPath);
-
       // Get the asset's content
       const response = await github.repos.getReleaseAsset({
         headers: {
@@ -116,19 +113,17 @@ export default class CustomPublisher extends PublisherBase<any> {
         asset_id: existingAsset.id,
       });
 
-      file.write(response.data);
-      file.end();
-
-      // Read the file to get the YAML string
-      const str = await readFile(tempYamlPath, 'utf8');
+      // Convert ArrayBuffer to a UTF-8 string
+      const text = new TextDecoder('utf-8').decode(new Uint8Array(response.data as unknown as ArrayBuffer));
 
       // Parse the existing YAML data
-      const existingData = YAML.parse(str);
+      const existingData = YAML.parse(text);
 
       // Append the new artifactInfo to the existing files array
       existingData.files.push(...artifactInfo);
 
       yamlStr = YAML.stringify(existingData);
+
 
       // delete the existing asset
       await github.repos.deleteReleaseAsset({
